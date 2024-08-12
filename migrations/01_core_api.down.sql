@@ -1,0 +1,12 @@
+-- Drop remaining tables with dependencies
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS socials CASCADE;
+DROP TABLE IF EXISTS categories_translation CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS country_translation CASCADE;
+DROP TABLE IF EXISTS countries CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS socials_variants CASCADE;
+DROP TABLE IF EXISTS languages CASCADE;
+-- Drop ENUM type
+DROP TYPE IF EXISTS user_role;
