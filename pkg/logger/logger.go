@@ -1,27 +1,14 @@
 package logger
 
 import (
+	"os"
+	"path/filepath"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-// Field ...
-type Field = zapcore.Field
-
-var (
-	// Int ..
-	Int = zap.Int
-	// String ...
-	String = zap.String
-	// Error ...
-	Error = zap.Error
-	// Bool ...
-	Bool = zap.Bool
-	// Any ...
-	Any = zap.Any
-)
-
-// Logger ...
+// LoggerI is an interface that defines logging methods.
 type LoggerI interface {
 	Debug(msg string, fields ...Field)
 	Info(msg string, fields ...Field)
@@ -32,21 +19,20 @@ type LoggerI interface {
 	Fatal(msg string, fields ...Field)
 }
 
+// loggerImpl is the concrete implementation of LoggerI using zap.Logger.
 type loggerImpl struct {
 	zap *zap.Logger
 }
 
-// NewLogger ...
-func NewLogger(namespace string, level string) LoggerI {
+// NewLogger initializes and returns a new LoggerI instance.
+func NewLogger(namespace, level, logFile string) LoggerI {
 	if level == "" {
 		level = LevelInfo
 	}
 
-	logger := loggerImpl{
-		zap: newZapLogger(namespace, level),
+	return &loggerImpl{
+		zap: newZapLogger(namespace, level, logFile),
 	}
-
-	return &logger
 }
 
 func (l *loggerImpl) Debug(msg string, fields ...Field) {
@@ -77,6 +63,38 @@ func (l *loggerImpl) Fatal(msg string, fields ...Field) {
 	l.zap.Fatal(msg, fields...)
 }
 
+// getLogFileWriter sets up a file writer for logging to a file.
+func getLogFileWriter(logFile string) zapcore.WriteSyncer {
+	// Ensure the directory exists
+	if err := os.MkdirAll(filepath.Dir(logFile), 0755); err != nil {
+		panic("Failed to create log directory: " + err.Error())
+	}
+
+	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic("Failed to open log file: " + err.Error())
+	}
+
+	return zapcore.AddSync(file)
+}
+
+// getConsoleEncoder returns an encoder configuration for console output.
+func getConsoleEncoder() zapcore.Encoder {
+	encoderConfig := zap.NewDevelopmentEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	return zapcore.NewConsoleEncoder(encoderConfig)
+}
+
+func Cleanup(l LoggerI) error {
+	switch v := l.(type) {
+	case *loggerImpl:
+		return v.zap.Sync()
+	default:
+		l.Info("logger.Cleanup: invalid logger type")
+		return nil
+	}
+}
+
 // GetNamed ...
 func GetNamed(l LoggerI, name string) LoggerI {
 	switch v := l.(type) {
@@ -99,16 +117,5 @@ func WithFields(l LoggerI, fields ...Field) LoggerI {
 	default:
 		l.Info("logger.WithFields: invalid logger type")
 		return l
-	}
-}
-
-// Cleanup ...
-func Cleanup(l LoggerI) error {
-	switch v := l.(type) {
-	case *loggerImpl:
-		return v.zap.Sync()
-	default:
-		l.Info("logger.Cleanup: invalid logger type")
-		return nil
 	}
 }

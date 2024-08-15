@@ -3,46 +3,42 @@ package logger
 import (
 	"os"
 
-	"github.com/streamingfast/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
-func newZapLogger(namespace, level string) *zap.Logger {
+var (
+	// Int ..
+	Int = zap.Int
+	// String ...
+	String = zap.String
+	// Error ...
+	Error = zap.Error
+	// Bool ...
+	Bool = zap.Bool
+	// Any ...
+	Any = zap.Any
+)
+
+type Field = zapcore.Field
+
+func newZapLogger(namespace, level, logFile string) *zap.Logger {
 	globalLevel := parseLevel(level)
 
-	highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.ErrorLevel
-	})
-
-	lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= globalLevel && lvl < zapcore.ErrorLevel
-	})
-
-	logStdErrorWriter := zapcore.Lock(os.Stderr)
-	logStdInfoWriter := zapcore.Lock(os.Stdout)
-
-	isTTY := terminal.IsTerminal(int(os.Stderr.Fd()))
+	// Setup the log file writer
+	logFileWriter := getLogFileWriter(logFile)
+	fileEncoder := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(logging.NewEncoder(4, isTTY), logStdErrorWriter, highPriority),
-		zapcore.NewCore(logging.NewEncoder(4, isTTY), logStdInfoWriter, lowPriority),
+		zapcore.NewCore(fileEncoder, logFileWriter, globalLevel),
+		zapcore.NewCore(getConsoleEncoder(), zapcore.Lock(os.Stdout), globalLevel),
 	)
 
-	logger := zap.New(
-		core,
-		zap.AddCaller(), zap.AddCallerSkip(1),
-		// zap.AddStacktrace(globalLevel),
-	)
-
-	logger = logger.Named(namespace)
-
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Named(namespace)
 	zap.RedirectStdLog(logger)
 
 	return logger
 }
-
 func parseLevel(level string) zapcore.Level {
 	switch level {
 	case LevelDebug:

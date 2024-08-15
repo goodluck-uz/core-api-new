@@ -48,7 +48,7 @@ func Load() Config {
 	cfg.PostgresDatabase = os.Getenv("POSTGRES_DATABASE")
 	cfg.PostgresPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.PostgresPort = os.Getenv("POSTGRES_PORT")
-	cfg.FileName = "../../api-logs/app.log"
+	cfg.FileName = "../api-logs/app.log"
 	cfg.DefaultOffset = 0
 	cfg.DefaultLimit = 10
 

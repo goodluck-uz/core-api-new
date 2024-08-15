@@ -1,3 +1,4 @@
 .env
 Makefile
 api-logs
+.DS_Store

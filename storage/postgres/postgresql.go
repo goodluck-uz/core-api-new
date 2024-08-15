@@ -12,6 +12,7 @@ import (
 type Store struct {
 	db       *pgxpool.Pool
 	category storage.CategoryRepoI
+	user     storage.UserRepoI
 }
 
 var logPath = "storage/postgres/postgresql.go"
@@ -48,4 +49,11 @@ func (s *Store) Category() storage.CategoryRepoI {
 		s.category = NewCategoryRepo(s.db)
 	}
 	return s.category
+}
+
+func (s *Store) User() storage.UserRepoI {
+	if s.user == nil {
+		s.user = NewUserRepo(s.db)
+	}
+	return s.user
 }

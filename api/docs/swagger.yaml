@@ -1,0 +1,109 @@
+definitions:
+  models.Category:
+    properties:
+      id:
+        type: integer
+      status:
+        type: boolean
+    type: object
+  models.CreateCategoryRequest:
+    properties:
+      status:
+        type: boolean
+    type: object
+  models.CreateUserRequest:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      banner:
+        type: string
+      category_id:
+        type: integer
+      country_id:
+        type: integer
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  models.User:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      banner:
+        type: string
+      category_id:
+        type: integer
+      country_id:
+        type: integer
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /categories:
+    post:
+      consumes:
+      - application/json
+      description: Create category
+      parameters:
+      - description: Create category
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Category'
+      summary: Create category
+      tags:
+      - categories
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: Create user
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Create user
+      tags:
+      - users
+swagger: "2.0"
