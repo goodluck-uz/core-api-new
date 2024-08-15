@@ -8,6 +8,7 @@ import (
 	"github.com/goodluck-uz/core-api/config"
 	"github.com/goodluck-uz/core-api/pkg/logger"
 	postgresql "github.com/goodluck-uz/core-api/storage/postgres"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -25,18 +26,17 @@ func main() {
 	default:
 		*loggerLevel = logger.LevelInfo
 	}
-	log := logger.NewLogger("app", *loggerLevel)
+	log := logger.NewLogger("app", *loggerLevel, cfg.FileName)
 	defer func() {
 		err := logger.Cleanup(log)
 		if err != nil {
 			return
 		}
 	}()
-
 	// Connect to PostgreSQL
 	store, err := postgresql.NewConnectPostgresql(&cfg)
 	if err != nil {
-		log.Panic("Error connecting to PostgreSQL: ", logger.Error(err))
+		log.Panic("Error connecting to PostgreSQL", zap.Error(err)) // Panic if connection fails
 		return
 	}
 	defer store.CloseDB()
